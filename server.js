@@ -21,7 +21,7 @@ app.get("/proxy", async (req, res) => {
     const contentType = response.headers.get("content-type") || "application/json";
     const data = await response.text();
 
-    // Wichtig: CORS-Header setzen
+    // WICHTIG! CORS freigeben
     res.set("Access-Control-Allow-Origin", "*");
     res.set("Content-Type", contentType);
 
