@@ -1,36 +1,36 @@
-const express = require("express");
-const fetch = require("node-fetch");
-require("dotenv").config();
-
+const express = require('express');
+const fetch = require('node-fetch');
+const dotenv = require('dotenv');
 const app = express();
-const PORT = process.env.PORT || 3000;
+dotenv.config();
 
-app.get("/proxy", async (req, res) => {
-  const targetUrl = req.query.url;
-  if (!targetUrl) {
-    return res.status(400).send("Missing URL");
-  }
+const API_TOKEN = process.env.API_KEY;
+
+app.use((req, res, next) => {
+  res.set('Access-Control-Allow-Origin', '*'); // <<< Das ist der wichtige Header
+  res.set('Access-Control-Allow-Headers', '*');
+  next();
+});
+
+app.get('/proxy', async (req, res) => {
+  const url = req.query.url;
+  if (!url) return res.status(400).json({ error: 'No URL provided' });
 
   try {
-    const response = await fetch(targetUrl, {
+    const response = await fetch(url, {
       headers: {
-        "X-Auth-Token": process.env.API_KEY,
-      },
+        'X-Auth-Token': API_TOKEN
+      }
     });
 
-    const contentType = response.headers.get("content-type") || "application/json";
-    const data = await response.text();
-
-    // WICHTIG! CORS freigeben
-    res.set("Access-Control-Allow-Origin", "*");
-    res.set("Content-Type", contentType);
-
-    res.send(data);
+    const data = await response.json();
+    res.json(data);
   } catch (err) {
-    res.status(500).send("Error: " + err.message);
+    res.status(500).json({ error: 'Fetch failed', details: err.message });
   }
 });
 
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Proxy läuft auf Port ${PORT}`);
 });
